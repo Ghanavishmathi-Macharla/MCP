@@ -12,60 +12,114 @@ mcp = MCPServer("Financial Assistant")
 #     """Add two numbers."""
 #     return a + b
 
-@mcp.tool()
-def get_stock_price(symbol: str) -> dict:
-    """
-    Get the current stock price for a given symbol.
-    Use this tool whenever the user asks for a current,
-    live, or latest stock price.
-    """
-
+def fetch_stock_quote(symbol: str) -> dict:
     api_key = os.getenv("FINNHUB_API_KEY")
 
-    if not api_key :
-        return {
-            "error": "API key not found. Please set the FINNHUB_API_KEY environment variable."
-        }
+    if not api_key:
+        raise RuntimeError("FINNHUB_API_KEY is not configured")
 
     symbol = symbol.strip().upper()
 
     if not symbol:
-        return {
-            "error": "Stock symbol cannot be empty."
-        }
+        raise ValueError("Stock symbol cannot be empty")
 
     url = "https://finnhub.io/api/v1/quote"
+
     params = {
         "symbol": symbol,
-        "token": api_key
+        "token": api_key,
     }
 
+    response = requests.get(
+        url,
+        params=params,
+        timeout=10
+    )
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    if not data or data.get("c") is None:
+        raise ValueError(
+            f"No quote data found for symbol '{symbol}'"
+        )
+
+    return {
+        "symbol": symbol,
+        "current_price": data["c"],
+        "change": data["d"],
+        "change_percent": data["dp"],
+        "high": data["h"],
+        "low": data["l"],
+        "open": data["o"],
+        "previous_close": data["pc"],
+        "timestamp": data["t"],
+    }
+
+@mcp.tool()
+def get_stock_price(symbol: str) -> dict:
+    """Get the latest available stock quote."""
+
     try:
-      response = requests.get(url, params=params,timeout=10)
-      response.raise_for_status()  # If the HTTP request failed, raise an exception instead of pretending everything worked.
-      data = response.json()
+        return fetch_stock_quote(symbol)
 
-      if not data or data.get("c") is None:
-          return {
-              "error": f"No data found for symbol: {symbol}"
-          }
+    except (RuntimeError, ValueError) as e:
+        return {
+            "error": str(e)
+        }
 
-      return {
-          "symbol": symbol.upper(),
-          "current_price": data["c"],
-          "change": data["d"],
-          "change_percent": data["dp"],
-          "high": data["h"],
-          "low": data["l"],
-          "open": data["o"],
-          "previous_close": data["pc"],
-          "timestamp": data["t"],
-      }
-    
     except requests.RequestException as e:
-      return {
-          "error":  f"Failed to fetch stock data: {str(e)}"
-      }
+        return {
+            "error": f"Failed to fetch stock data: {str(e)}"
+        }
+    
+@mcp.resource("watchlist://stocks")
+def get_watchlist() -> str:
+   return """
+        AAPL
+        MSFT
+        GOOGL
+        AMZN
+        NVDA
+    """
+
+@mcp.resource("stock://{symbol}")
+def get_stock_resource(symbol: str) -> dict:
+    """Provide stock information as an MCP resource."""
+
+    try:
+        return fetch_stock_quote(symbol)
+
+    except (RuntimeError, ValueError) as e:
+        return {
+            "error": str(e)
+        }
+
+    except requests.RequestException as e:
+        return {
+            "error": f"Failed to fetch stock data: {str(e)}"
+        }
+    
+@mcp.prompt()
+def analyze_stock(symbol: str) -> str:
+    """Generate a structured prompt for analyzing a stock."""
+
+    return f"""
+    Analyze the stock {symbol.upper()}.
+
+    Use the available stock information and provide:
+
+    1. Current price
+    2. Daily price change
+    3. Daily percentage change
+    4. Day high
+    5. Day low
+    6. Previous closing price
+    7. A short interpretation of the current movement
+
+    Clearly mention that this is market data and not financial advice.
+    """
 
 if __name__ == "__main__":
     mcp.run("stdio")

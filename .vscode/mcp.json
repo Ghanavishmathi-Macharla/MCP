@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "financial-assistant": {
+      "command": "/Users/gmacharl/Documents/learn/MCP/.venv/bin/mcp",
+      "args": ["run", "server.py"],
+      "cwd": "/Users/gmacharl/Documents/learn/MCP"
+    }
+  }
+}

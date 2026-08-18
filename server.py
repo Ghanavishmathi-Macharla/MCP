@@ -3,6 +3,7 @@ import os
 import requests
 from dotenv import load_dotenv
 from gmail import send_email as gmail_send_email
+from stock_service import resolve_stock_symbol
 
 load_dotenv()
 
@@ -59,11 +60,24 @@ def fetch_stock_quote(symbol: str) -> dict:
     }
 
 @mcp.tool()
-def get_stock_price(symbol: str) -> dict:
-    """Get the latest available stock quote."""
+def get_stock_price(stock: str) -> dict:
+    """
+    Get the latest available stock quote.
+
+    The input can be either a stock ticker symbol
+    such as AAPL or NVDA, or a company name such as
+    Apple or NVIDIA.
+    """
 
     try:
-        return fetch_stock_quote(symbol)
+        symbol = resolve_stock_symbol(stock)
+
+        quote = fetch_stock_quote(symbol)
+
+        return {
+            "company_or_symbol_requested": stock,
+            **quote
+        }
 
     except (RuntimeError, ValueError) as e:
         return {

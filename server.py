@@ -2,6 +2,7 @@ from mcp.server import MCPServer
 import os
 import requests
 from dotenv import load_dotenv
+from gmail import send_email as gmail_send_email
 
 load_dotenv()
 
@@ -73,7 +74,30 @@ def get_stock_price(symbol: str) -> dict:
         return {
             "error": f"Failed to fetch stock data: {str(e)}"
         }
-    
+
+@mcp.tool()
+def send_email(
+    to: str,
+    subject: str,
+    body: str
+) -> dict:
+    """
+    Send an email using the authenticated Gmail account.
+    """
+
+    try:
+        return gmail_send_email(
+            to=to,
+            subject=subject,
+            body=body
+        )
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+	  
 @mcp.resource("watchlist://stocks")
 def get_watchlist() -> str:
    return """

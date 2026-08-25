@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCP Interactive Playground</title>
+<style>
+:root{--bg:#f4f7fb;--panel:#fff;--ink:#172033;--muted:#667085;--line:#dfe5ee;--blue:#2563eb;--blue2:#dbeafe;--teal:#0f766e;--shadow:0 14px 35px rgba(20,35,60,.08)}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:linear-gradient(180deg,#eef3fa 0%,var(--bg) 60%)}.app{min-height:100vh;padding:24px}.shell{max-width:1450px;margin:auto}
+header{display:flex;justify-content:space-between;gap:24px;padding:8px 2px 22px}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.14em;color:var(--blue);text-transform:uppercase;margin-bottom:8px}h1{font-size:34px;line-height:1.1;margin:0 0 8px}.sub{color:var(--muted);max-width:850px;font-size:15px;line-height:1.55}.badge{padding:8px 12px;border:1px solid var(--line);background:#fff;border-radius:999px;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+.grid-top{display:grid;grid-template-columns:280px 1fr 360px;gap:18px}.panel{background:var(--panel);border:1px solid rgba(190,200,215,.7);border-radius:18px;box-shadow:var(--shadow)}.panel-head{padding:16px 18px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}.panel-title{font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}.panel-body{padding:16px 18px}
+.scenario{width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin-bottom:10px;cursor:pointer}.scenario.active{border-color:#93b4ff;background:#eff6ff}.scenario .title{font-weight:800;font-size:14px}.scenario .desc{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45}
+button{border:0;border-radius:11px;padding:10px 14px;font-size:13px;font-weight:800;cursor:pointer}.primary{background:var(--blue);color:#fff}.secondary{background:#fff;border:1px solid var(--line);color:var(--ink)}.ghost{background:#f8fafc;color:var(--muted)}.runbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.speed{font-size:12px;color:var(--muted);margin-top:9px}
+.flow{min-height:520px;padding:20px;overflow:hidden}.flow-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.live-indicator{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}.dot{width:8px;height:8px;border-radius:50%;background:#cbd5e1}.dot.running{background:#22c55e;box-shadow:0 0 0 5px rgba(34,197,94,.12)}
+.node-row{display:grid;grid-template-columns:1fr 28px 1fr 28px 1fr 28px 1fr;gap:8px;align-items:center;margin-top:36px}.node{min-height:92px;border:1px solid var(--line);border-radius:16px;padding:14px;background:#fbfcfe;display:flex;flex-direction:column;justify-content:center;transition:.25s}.node .k{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:800;letter-spacing:.08em}.node .n{font-size:15px;font-weight:800;margin-top:6px}.node.active{border-color:#8ab0ff;background:#eff6ff;box-shadow:0 10px 25px rgba(37,99,235,.12)}.node.done{border-color:#86efac;background:#f0fdf4}.arrow{height:2px;background:var(--line);position:relative}.arrow:after{content:"";position:absolute;right:-1px;top:-4px;border-left:8px solid var(--line);border-top:5px solid transparent;border-bottom:5px solid transparent}.arrow.live{background:#7aa4ff}.arrow.live:after{border-left-color:#7aa4ff}
+.step-banner{margin-top:8px;padding:12px 16px;border-radius:12px;background:linear-gradient(90deg,#eff6ff,#f0fdf4);border:1px solid #93b4ff;font-size:15px;font-weight:700;color:#1e3a5f;text-align:center;min-height:42px;display:flex;align-items:center;justify-content:center;gap:8px;transition:.3s}.step-banner .step-num{background:#2563eb;color:#fff;border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}.step-banner.idle{background:#f8fafc;border-color:var(--line);color:var(--muted)}
+.node .subtitle{font-size:11px;color:var(--muted);margin-top:4px;transition:.2s;min-height:16px}.node .role-tag{display:inline-block;font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;margin-top:6px;text-transform:uppercase;letter-spacing:.06em}.role-tag.sender{background:#dbeafe;color:#1d4ed8}.role-tag.receiver{background:#dcfce7;color:#15803d}.role-tag.idle{background:#f1f5f9;color:#94a3b8}
+.arrow.left{transform:scaleX(-1)}
+.message-card{margin-top:16px;border:1px solid var(--line);border-radius:16px;background:#fbfcfe;padding:15px}.message-line{display:flex;justify-content:space-between;gap:16px;align-items:center}.method{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:800;font-size:13px}.direction{font-size:11px;color:var(--muted);font-weight:800}.json-mini{margin-top:10px;background:#111827;color:#d1e2ff;border-radius:12px;padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;min-height:90px}
+.progress-wrap{margin-top:18px}.progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:7px}.progress{height:8px;background:#eef2f7;border-radius:99px;overflow:hidden}.bar{height:100%;width:0;background:linear-gradient(90deg,#2563eb,#0f766e);transition:width .4s}
+.inspector{height:100%;display:flex;flex-direction:column}.inspector .panel-body{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:0}
+.insp-tabs{display:flex;border-bottom:1px solid var(--line);padding:0 16px}.insp-tab{padding:10px 14px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.15s}.insp-tab.active{color:var(--blue);border-bottom-color:var(--blue)}.insp-tab .tab-count{background:#eef2f7;color:#64748b;font-size:10px;padding:1px 6px;border-radius:99px;margin-left:5px}
+.insp-current,.insp-log{flex:1;overflow:auto;padding:16px}
+.insp-log{display:none}
+.live-bar{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);background:#fafbfd}.live-toggle{position:relative;width:40px;height:22px;cursor:pointer}.live-toggle input{display:none}.live-slider{position:absolute;inset:0;background:#cbd5e1;border-radius:22px;transition:.2s}.live-slider:before{content:"";position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}.live-toggle input:checked+.live-slider{background:#22c55e}.live-toggle input:checked+.live-slider:before{transform:translateX(18px)}.live-label{font-size:12px;font-weight:700;color:var(--muted)}.live-label.on{color:#15803d}.live-input{flex:1;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px;font-family:inherit;outline:none}.live-input:focus{border-color:var(--blue)}.live-input::placeholder{color:#cbd5e1}.live-go{padding:6px 14px;font-size:12px}
+.insp-dir-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;padding:3px 9px;border-radius:8px;margin-bottom:10px}.insp-dir-badge.outgoing{background:#dbeafe;color:#1d4ed8}.insp-dir-badge.incoming{background:#dcfce7;color:#15803d}.insp-dir-badge.internal{background:#fef3c7;color:#92400e}
+.insp-step-label{font-size:12px;color:var(--muted);margin-bottom:6px}
+.raw{background:#0b1220;color:#dbe8ff;border-radius:14px;min-height:300px;padding:16px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.55;overflow:auto;white-space:pre-wrap}
+.raw .json-key{color:#7dd3fc}.raw .json-str{color:#86efac}.raw .json-num{color:#fbbf24}.raw .json-bool{color:#c084fc}.raw .json-null{color:#94a3b8}.raw .json-note{color:#94a3b8;font-style:italic;display:block;margin-top:12px;padding-top:10px;border-top:1px solid #1e293b}
+.log-entry{border:1px solid #1e293b;border-radius:10px;background:#0f1729;padding:10px 12px;margin-bottom:8px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.5;white-space:pre-wrap;color:#dbe8ff}.log-entry-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.log-entry-method{font-weight:800;font-size:12px;color:#7dd3fc}.log-entry-dir{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px}.log-entry-dir.out{background:#1e3a5f;color:#7dd3fc}.log-entry-dir.in{background:#14532d;color:#86efac}.log-entry-dir.int{background:#451a03;color:#fbbf24}
+.inspector-meta{display:flex;gap:8px;align-items:center}.pill{padding:6px 9px;border-radius:999px;font-size:11px;font-weight:800}.pill.blue{background:var(--blue2);color:#1d4ed8}.pill.teal{background:#ccfbf1;color:#0f766e}
+.bottom{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+.concept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.concept{border:1px solid var(--line);border-radius:14px;padding:18px;transition:.2s;cursor:pointer;position:relative}.concept:hover{border-color:#93b4ff;box-shadow:0 6px 20px rgba(37,99,235,.08)}.concept.highlight{border-color:#2563eb;background:#eff6ff}
+.concept-icon{font-size:28px;margin-bottom:10px}
+.concept h3{margin:0 0 4px;font-size:15px;display:flex;align-items:center;gap:8px}
+.concept p{margin:0 0 10px;color:var(--muted);font-size:12px;line-height:1.5}
+.concept-example{background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#334155;line-height:1.4;margin-bottom:10px}
+.concept-methods{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}.concept-methods span{background:#f1f5f9;color:#475569;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;padding:2px 7px;border-radius:6px}
+.concept-try{font-size:11px;font-weight:700;color:var(--blue);text-decoration:none;display:inline-flex;align-items:center;gap:3px}.timeline{display:flex;flex-direction:column;gap:11px}.step{display:grid;grid-template-columns:32px 1fr;gap:10px;padding:7px;border-radius:12px;cursor:pointer;transition:.18s}.step:hover{background:#f8fafc}.step.current{background:#eff6ff}.step.future{opacity:.65}.num{width:28px;height:28px;border-radius:50%;background:#eef2f7;color:#64748b;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px}.num.done{background:#dcfce7;color:#15803d}.step.current .num{background:#2563eb;color:#fff;box-shadow:0 0 0 5px rgba(37,99,235,.10)}.step h4{margin:0;font-size:13px}.step p{margin:3px 0 0;color:var(--muted);font-size:12px}.toast{position:fixed;right:24px;bottom:24px;background:#111827;color:#fff;padding:12px 14px;border-radius:12px;font-size:13px;box-shadow:var(--shadow);opacity:0;transform:translateY(8px);transition:.2s}.toast.show{opacity:1;transform:translateY(0)}
+@media(max-width:1150px){.grid-top,.bottom{grid-template-columns:1fr}.node-row{grid-template-columns:1fr}.arrow{display:none}}
+</style>
+</head>
+<body>
+<div class="app"><div class="shell">
+<header>
+<div><div class="eyebrow">Interactive learning demo</div><h1>Model Context Protocol Playground</h1><div class="sub">Show the audience what MCP is doing — not just the architecture diagram. Run a scenario, step through the flow, and inspect the messages exchanged between host, client, server and external systems.</div></div>
+<div class="badge">Demo mode • no credentials required</div>
+</header>
+
+<div class="live-bar" id="liveBar">
+<label class="live-toggle"><input type="checkbox" id="liveCheck"><span class="live-slider"></span></label>
+<span class="live-label" id="liveLabel">Demo mode</span>
+<input class="live-input" id="liveSymbol" placeholder="Enter stock symbol or company name…" disabled>
+<button class="primary live-go" id="liveGoBtn" disabled>Fetch Live</button>
+</div>
+
+<section class="grid-top">
+<div class="panel"><div class="panel-head"><div class="panel-title">Scenarios</div></div><div class="panel-body">
+<button class="scenario active" data-scenario="tool-discovery"><div class="title">1. Tool Discovery</div><div class="desc">See how a client learns what tools the server exposes.</div></button>
+<button class="scenario" data-scenario="tool-call"><div class="title">2. Tool Invocation</div><div class="desc">Call get_stock_price with a natural-language company name.</div></button>
+<button class="scenario" data-scenario="resource"><div class="title">3. Resource Read</div><div class="desc">Read watchlist://stocks as contextual data.</div></button>
+<button class="scenario" data-scenario="prompt"><div class="title">4. Prompt</div><div class="desc">Generate a reusable stock-analysis prompt.</div></button>
+<button class="scenario" data-scenario="workflow"><div class="title">5. Multi-tool Workflow</div><div class="desc">Get a quote, prepare a summary, then send an email.</div></button>
+<div class="runbar"><button class="primary" id="runBtn">Run scenario</button><button class="secondary" id="backBtn">← Previous</button><button class="secondary" id="stepBtn">Next →</button><button class="ghost" id="resetBtn">Reset</button></div>
+<div class="speed">Use Previous / Next, or click any timeline step to jump directly and replay the protocol from that point.</div>
+</div></div>
+
+<div class="panel flow">
+<div class="flow-head"><div class="panel-title">Live Flow</div><div class="live-indicator"><span class="dot" id="statusDot"></span><span id="statusText">Ready</span></div></div>
+<div class="step-banner idle" id="stepBanner">Pick a scenario and press Run or Next →</div>
+<div class="node-row">
+<div class="node" id="n-host"><div class="k">Host / LLM</div><div class="n">AI decides</div><div class="subtitle" id="sub-host"></div><div class="role-tag idle" id="tag-host">—</div></div><div class="arrow" id="a1"></div>
+<div class="node" id="n-client"><div class="k">MCP Client</div><div class="n">Protocol call</div><div class="subtitle" id="sub-client"></div><div class="role-tag idle" id="tag-client">—</div></div><div class="arrow" id="a2"></div>
+<div class="node" id="n-server"><div class="k">MCP Server</div><div class="n">Capability</div><div class="subtitle" id="sub-server"></div><div class="role-tag idle" id="tag-server">—</div></div><div class="arrow" id="a3"></div>
+<div class="node" id="n-external"><div class="k">External System</div><div class="n">API / DB / SaaS</div><div class="subtitle" id="sub-external"></div><div class="role-tag idle" id="tag-external">—</div></div>
+</div>
+<div class="message-card"><div class="message-line"><div class="method" id="method">Waiting for a scenario…</div><div class="direction" id="direction">—</div></div><div class="json-mini" id="miniJson">{}</div></div>
+<div class="progress-wrap"><div class="progress-label"><span id="stepLabel">Step 0 of 0</span><span id="progressText">0%</span></div><div class="progress"><div class="bar" id="bar"></div></div></div>
+</div>
+
+<div class="panel inspector"><div class="panel-head"><div class="panel-title">MCP Message Inspector</div><div class="inspector-meta"><span class="pill blue">JSON-RPC</span><span class="pill teal">DEMO</span></div></div>
+<div class="insp-tabs"><div class="insp-tab active" data-tab="current">Current Message</div><div class="insp-tab" data-tab="log">Message Log <span class="tab-count" id="logCount">0</span></div></div>
+<div class="panel-body">
+<div class="insp-current" id="inspCurrent"><div class="raw" id="raw">Select a scenario and run it to inspect the message flow.</div></div>
+<div class="insp-log" id="inspLog"></div>
+</div></div>
+</section>
+
+<section class="bottom">
+<div class="panel"><div class="panel-head"><div class="panel-title">Three Core Primitives</div></div><div class="panel-body"><div class="concept-grid">
+<div class="concept" id="concept-tools" data-scenario="tool-call">
+<div class="concept-icon">&#9889;</div>
+<h3>Tools</h3>
+<p>Model-controlled actions the server can execute. The LLM decides when and how to call them.</p>
+<div class="concept-example">get_stock_price({ symbol: "NVDA" })<br>send_email({ to: "...", subject: "..." })</div>
+<div class="concept-methods"><span>tools/list</span><span>tools/call</span></div>
+<a class="concept-try" href="#" onclick="selectScenario('tool-call');return false">Try it &#8594;</a>
+</div>
+<div class="concept" id="concept-resources" data-scenario="resource">
+<div class="concept-icon">&#128196;</div>
+<h3>Resources</h3>
+<p>Application-controlled context and data exposed via URIs. Read-only — provides information, not actions.</p>
+<div class="concept-example">watchlist://stocks<br>&rarr; ["AAPL", "MSFT", "NVDA", "AMZN"]</div>
+<div class="concept-methods"><span>resources/list</span><span>resources/read</span></div>
+<a class="concept-try" href="#" onclick="selectScenario('resource');return false">Try it &#8594;</a>
+</div>
+<div class="concept" id="concept-prompts" data-scenario="prompt">
+<div class="concept-icon">&#128172;</div>
+<h3>Prompts</h3>
+<p>User-controlled reusable instruction templates. Parameterized messages for domain-specific workflows.</p>
+<div class="concept-example">analyze_stock({ symbol: "NVIDIA" })<br>&rarr; "Analyze NVIDIA using price, risks..."</div>
+<div class="concept-methods"><span>prompts/list</span><span>prompts/get</span></div>
+<a class="concept-try" href="#" onclick="selectScenario('prompt');return false">Try it &#8594;</a>
+</div>
+</div></div></div>
+<div class="panel"><div class="panel-head"><div class="panel-title">Presentation Timeline</div></div><div class="panel-body"><div class="timeline" id="timeline"></div></div></div>
+</section>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const scenarios={
+"tool-discovery":{title:"Tool Discovery",steps:[
+{label:"Host asks what tools exist",node:"host",method:"tools/list",dir:"CLIENT → SERVER",msg:{jsonrpc:"2.0",id:1,method:"tools/list",params:{}}},
+{label:"Server returns tool definitions",node:"server",method:"tools/list → result",dir:"SERVER → CLIENT",msg:{jsonrpc:"2.0",id:1,result:{tools:[
+{name:"get_stock_price",description:"Get a stock quote",inputSchema:{type:"object",properties:{symbol:{type:"string"}}}},
+{name:"compare_stocks",description:"Compare two stocks",inputSchema:{type:"object"}},
+{name:"send_email",description:"Send an email",inputSchema:{type:"object"}}]}}},
+{label:"Capabilities are now available to the model",node:"host",method:"discovery complete",dir:"CLIENT → HOST",msg:{available_tools:["get_stock_price","compare_stocks","send_email"]}}
+]},
+"tool-call":{title:"Tool Invocation",steps:[
+{label:"User asks for NVIDIA price",node:"host",method:"user request",dir:"USER → HOST",msg:{user:"What's the current stock price of NVIDIA?"},roles:{host:"receiving",client:"idle",server:"idle",external:"idle"},subs:{host:"Receives user query",client:"",server:"",external:""}},
+{label:"Model selects get_stock_price",node:"host",method:"tool selection",dir:"HOST INTERNAL",msg:{tool:"get_stock_price",arguments:{symbol:"NVIDIA"}},note:"The model can select a tool; MCP standardizes how the selected capability is invoked.",roles:{host:"sender",client:"idle",server:"idle",external:"idle"},subs:{host:"Picks the right tool",client:"Waiting…",server:"",external:""}},
+{label:"Client sends tools/call",node:"client",method:"tools/call",dir:"CLIENT → SERVER",msg:{jsonrpc:"2.0",id:42,method:"tools/call",params:{name:"get_stock_price",arguments:{symbol:"NVIDIA"}}},roles:{host:"idle",client:"sender",server:"receiver",external:"idle"},subs:{host:"Done",client:"Sends JSON-RPC request",server:"Receives call",external:""}},
+{label:"Server resolves NVIDIA → NVDA",node:"server",method:"server-side logic",dir:"SERVER INTERNAL",msg:{requested:"NVIDIA",resolved_symbol:"NVDA"},roles:{host:"idle",client:"idle",server:"sender",external:"idle"},subs:{host:"",client:"Waiting for response…",server:"Looks up ticker symbol",external:""}},
+{label:"External API returns quote",node:"external",method:"market-data request",dir:"SERVER → EXTERNAL API",msg:{symbol:"NVDA",current_price:208.48,change:-6.24,change_percent:-2.9061},roles:{host:"idle",client:"idle",server:"sender",external:"receiver"},subs:{host:"",client:"Waiting…",server:"Calls Finnhub API",external:"Returns market data"}},
+{label:"Server returns tool result",node:"server",method:"tools/call → result",dir:"SERVER → CLIENT",msg:{jsonrpc:"2.0",id:42,result:{symbol:"NVDA",current_price:208.48,change:-6.24,change_percent:-2.9061}},roles:{host:"idle",client:"receiver",server:"sender",external:"idle"},subs:{host:"",client:"Receives result",server:"Sends JSON-RPC response",external:"Done"}},
+{label:"LLM explains result",node:"host",method:"final response",dir:"HOST → USER",msg:{answer:"NVDA is trading at $208.48, down 2.9061%."},roles:{host:"sender",client:"idle",server:"idle",external:"idle"},subs:{host:"Formats answer for user",client:"Done",server:"Done",external:""}}
+]},
+"resource":{title:"Resource Read",steps:[
+{label:"Client discovers resources",node:"client",method:"resources/list",dir:"CLIENT → SERVER",msg:{jsonrpc:"2.0",id:7,method:"resources/list",params:{}}},
+{label:"Server advertises watchlist://stocks",node:"server",method:"resources/list → result",dir:"SERVER → CLIENT",msg:{jsonrpc:"2.0",id:7,result:{resources:[{uri:"watchlist://stocks",name:"Stock Watchlist",description:"Current watchlist"}]}}},
+{label:"Client reads the resource",node:"client",method:"resources/read",dir:"CLIENT → SERVER",msg:{jsonrpc:"2.0",id:8,method:"resources/read",params:{uri:"watchlist://stocks"}}},
+{label:"Server returns context",node:"server",method:"resources/read → result",dir:"SERVER → CLIENT",msg:{jsonrpc:"2.0",id:8,result:{contents:[{uri:"watchlist://stocks",text:"AAPL\nMSFT\nNVDA\nAMZN"}]}},note:"A resource provides data/context; it represents information to read rather than an action to execute."}
+]},
+"prompt":{title:"Prompt",steps:[
+{label:"Client discovers prompt",node:"client",method:"prompts/list",dir:"CLIENT → SERVER",msg:{jsonrpc:"2.0",id:12,method:"prompts/list",params:{}}},
+{label:"Server advertises analyze_stock",node:"server",method:"prompts/list → result",dir:"SERVER → CLIENT",msg:{jsonrpc:"2.0",id:12,result:{prompts:[{name:"analyze_stock",description:"Structured stock-analysis prompt"}]}}},
+{label:"Client requests the prompt",node:"client",method:"prompts/get",dir:"CLIENT → SERVER",msg:{jsonrpc:"2.0",id:13,method:"prompts/get",params:{name:"analyze_stock",arguments:{symbol:"NVIDIA"}}}},
+{label:"Server returns reusable instructions",node:"server",method:"prompts/get → result",dir:"SERVER → CLIENT",msg:{jsonrpc:"2.0",id:13,result:{messages:[{role:"user",content:{type:"text",text:"Analyze NVIDIA using price, daily movement, risks, catalysts and recent context."}}]}},note:"A prompt supplies a reusable instruction pattern. It is distinct from a tool execution."}
+]},
+"workflow":{title:"Multi-tool Workflow",steps:[
+{label:"User asks for price + email",node:"host",method:"user request",dir:"USER → HOST",msg:{user:"Get NVIDIA's price and email me the result."}},
+{label:"LLM chooses stock tool",node:"host",method:"tool selection",dir:"HOST INTERNAL",msg:{tool:"get_stock_price",arguments:{symbol:"NVIDIA"}}},
+{label:"Client calls stock tool",node:"client",method:"tools/call",dir:"CLIENT → SERVER",msg:{jsonrpc:"2.0",id:21,method:"tools/call",params:{name:"get_stock_price",arguments:{symbol:"NVIDIA"}}}},
+{label:"Server gets quote",node:"external",method:"market-data request",dir:"SERVER → EXTERNAL API",msg:{symbol:"NVDA",current_price:208.48,change_percent:-2.9061}},
+{label:"LLM chooses email tool",node:"host",method:"tool selection",dir:"HOST INTERNAL",msg:{tool:"send_email",arguments:{to:"user@example.com",subject:"NVIDIA Stock Update",body:"NVDA is $208.48; daily move -2.9061%."}}},
+{label:"Client calls email tool",node:"client",method:"tools/call",dir:"CLIENT → SERVER",msg:{jsonrpc:"2.0",id:22,method:"tools/call",params:{name:"send_email",arguments:{to:"user@example.com",subject:"NVIDIA Stock Update"}}}},
+{label:"Server calls Gmail",node:"external",method:"Gmail API",dir:"SERVER → EXTERNAL API",msg:{action:"send_message",status:"success"}},
+{label:"LLM confirms completion",node:"host",method:"final response",dir:"HOST → USER",msg:{answer:"The NVIDIA update was retrieved and emailed."}}
+]}};
+
+let currentKey="tool-discovery",currentIndex=-1,timer=null;
+const nodes={host:document.getElementById("n-host"),client:document.getElementById("n-client"),server:document.getElementById("n-server"),external:document.getElementById("n-external")};
+const arrows=[document.getElementById("a1"),document.getElementById("a2"),document.getElementById("a3")];
+const pretty=o=>JSON.stringify(o,null,2);
+const subs={host:document.getElementById("sub-host"),client:document.getElementById("sub-client"),server:document.getElementById("sub-server"),external:document.getElementById("sub-external")};
+const tags={host:document.getElementById("tag-host"),client:document.getElementById("tag-client"),server:document.getElementById("tag-server"),external:document.getElementById("tag-external")};
+const banner=document.getElementById("stepBanner");
+function clearNodes(){Object.values(nodes).forEach(n=>n.classList.remove("active","done"));arrows.forEach(a=>{a.classList.remove("live");a.classList.remove("left")});Object.values(subs).forEach(s=>s.textContent="");Object.values(tags).forEach(t=>{t.textContent="—";t.className="role-tag idle"})}
+function applyRoles(st){if(!st.roles)return;["host","client","server","external"].forEach(k=>{const role=st.roles[k];if(role&&role!=="idle"){tags[k].textContent=role==="sender"?"Sending":role==="receiver"?"Receiving":role;tags[k].className=`role-tag ${role==="sender"?"sender":"receiver"}`}});if(st.subs){["host","client","server","external"].forEach(k=>{if(st.subs[k])subs[k].textContent=st.subs[k]})}}
+function setArrowDirection(st){if(!st.dir)return;const d=st.dir;if(d.includes("SERVER → CLIENT")){arrows[1].classList.add("live","left")}else if(d.includes("CLIENT → SERVER")){arrows[0].classList.add("live");arrows[1].classList.add("live")}else if(d.includes("SERVER → EXTERNAL")){arrows[2].classList.add("live")}}
+function render(){
+ const sc=scenarios[currentKey],total=sc.steps.length,idx=currentIndex;clearNodes();
+ if(idx>=0){const st=sc.steps[idx];nodes[st.node]?.classList.add("active");applyRoles(st);setArrowDirection(st);if(st.node==="external"){nodes.server.classList.add("done");arrows[2].classList.add("live")}if(st.node==="server"){nodes.client.classList.add("done");arrows[1].classList.add("live")}if(st.node==="client"){nodes.host.classList.add("done");arrows[0].classList.add("live")}if(st.node==="host"&&idx>0)nodes.server.classList.add("done");banner.innerHTML=`<span class="step-num">${idx+1}</span>${st.label}`;banner.classList.remove("idle")}else{banner.textContent="Pick a scenario and press Run or Next →";banner.classList.add("idle")}
+ document.getElementById("stepLabel").textContent=idx<0?`Step 0 of ${total}`:`Step ${idx+1} of ${total}`;
+ const pct=idx<0?0:Math.round(((idx+1)/total)*100);document.getElementById("progressText").textContent=pct+"%";document.getElementById("bar").style.width=pct+"%";
+ if(idx<0){document.getElementById("method").textContent="Waiting for a scenario…";document.getElementById("direction").textContent="—";document.getElementById("miniJson").textContent="{}";document.getElementById("raw").textContent="Select a scenario and run it to inspect the message flow."}
+ else{const st=sc.steps[idx];document.getElementById("method").textContent=st.method;document.getElementById("direction").textContent=st.dir;document.getElementById("miniJson").textContent=pretty(st.msg);renderInspector(sc,idx);addLogEntry(sc,idx)}
+ highlightPrimitive(currentKey);
+ updateTimeline();
+}
+function updateTimeline(){const el=document.getElementById("timeline"),steps=scenarios[currentKey].steps;el.innerHTML="";steps.forEach((s,i)=>{const w=document.createElement("div");w.className=`step ${i===currentIndex?"current":""} ${i>currentIndex?"future":""}`;w.title="Click to jump to this step";w.innerHTML=`<div class="num ${i<=currentIndex?"done":""}">${i+1}</div><div><h4>${s.label}</h4><p>${s.method} · ${s.dir}</p></div>`;w.addEventListener("click",()=>jumpToStep(i));el.appendChild(w)})}
+function jumpToStep(i){clearInterval(timer);running=false;currentIndex=i;document.getElementById("statusText").textContent=(i===scenarios[currentKey].steps.length-1?"Complete":"Paused");document.getElementById("statusDot").classList.remove("running");render();toast(`Jumped to step ${i+1}`)}
+function previousStep(){if(currentIndex>0){jumpToStep(currentIndex-1)}else if(currentIndex===0){jumpToStep(0)}else{toast("You are at the beginning")}}
+function selectScenario(k){clearInterval(timer);currentKey=k;currentIndex=-1;clearLog();document.querySelectorAll(".scenario").forEach(b=>b.classList.toggle("active",b.dataset.scenario===k));document.getElementById("statusText").textContent="Ready";document.getElementById("statusDot").classList.remove("running");render()}
+function nextStep(){const total=scenarios[currentKey].steps.length;if(currentIndex<total-1){currentIndex++;document.getElementById("statusText").textContent="Running";document.getElementById("statusDot").classList.add("running");render();if(currentIndex===total-1){document.getElementById("statusText").textContent="Complete";document.getElementById("statusDot").classList.remove("running")}}}
+function run(){clearInterval(timer);currentIndex=-1;document.getElementById("statusText").textContent="Running";document.getElementById("statusDot").classList.add("running");render();timer=setInterval(()=>{const total=scenarios[currentKey].steps.length;if(currentIndex<total-1){currentIndex++;render()}else{clearInterval(timer);document.getElementById("statusText").textContent="Complete";document.getElementById("statusDot").classList.remove("running");toast("Scenario complete")}},850)}
+function reset(){clearInterval(timer);currentIndex=-1;document.getElementById("statusText").textContent="Ready";document.getElementById("statusDot").classList.remove("running");render()}
+function syntaxHighlight(json){return json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/("(?:\\.|[^"\\])*")\s*:/g,'<span class="json-key">$1</span>:').replace(/:\s*("(?:\\.|[^"\\])*")/g,': <span class="json-str">$1</span>').replace(/:\s*(-?\d+\.?\d*)/g,': <span class="json-num">$1</span>').replace(/:\s*(true|false)/g,': <span class="json-bool">$1</span>').replace(/:\s*(null)/g,': <span class="json-null">$1</span>')}
+function dirBadge(dir){if(dir.includes('→')&&(dir.includes('CLIENT → SERVER')||dir.includes('SERVER → EXTERNAL')||dir.includes('HOST → USER')||dir.includes('USER → HOST')))return dir.includes('SERVER → CLIENT')||dir.includes('HOST')?'internal':'outgoing';if(dir.includes('SERVER → CLIENT'))return'incoming';if(dir.includes('INTERNAL'))return'internal';return'outgoing'}
+function dirClass(dir){const d=dirBadge(dir);return d==='incoming'?'in':d==='internal'?'int':'out'}
+function renderInspector(sc,idx){const st=sc.steps[idx];const total=sc.steps.length;const dType=dirBadge(st.dir);const raw=document.getElementById('raw');let html=`<div class="insp-step-label">SCENARIO: ${sc.title} &middot; Step ${idx+1}/${total}</div>`;html+=`<div class="insp-dir-badge ${dType}">${st.dir}</div>`;html+=`<div style="margin-bottom:6px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:800;font-size:13px;color:#e2e8f0">${st.method}</div>`;html+=syntaxHighlight(pretty(st.msg));if(st.note)html+=`<div class="json-note">&#9432; ${st.note}</div>`;raw.innerHTML=html}
+let logEntries=[];
+function addLogEntry(sc,idx){const st=sc.steps[idx];logEntries.push({method:st.method,dir:st.dir,msg:st.msg,step:idx+1});const logEl=document.getElementById('inspLog');const dc=dirClass(st.dir);const entry=document.createElement('div');entry.className='log-entry';entry.innerHTML=`<div class="log-entry-head"><span class="log-entry-method">${st.method}</span><span class="log-entry-dir ${dc}">${st.dir}</span></div>${syntaxHighlight(pretty(st.msg))}`;logEl.prepend(entry);document.getElementById('logCount').textContent=logEntries.length}
+function clearLog(){logEntries=[];document.getElementById('inspLog').innerHTML='';document.getElementById('logCount').textContent='0'}
+function highlightPrimitive(key){document.querySelectorAll('.concept').forEach(c=>c.classList.remove('highlight'));if(key==='tool-call'||key==='tool-discovery'||key==='workflow')document.getElementById('concept-tools')?.classList.add('highlight');if(key==='resource')document.getElementById('concept-resources')?.classList.add('highlight');if(key==='prompt')document.getElementById('concept-prompts')?.classList.add('highlight')}
+document.querySelectorAll('.insp-tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.insp-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');const target=tab.dataset.tab;document.getElementById('inspCurrent').style.display=target==='current'?'block':'none';document.getElementById('inspLog').style.display=target==='log'?'block':'none'})});
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800)}
+document.querySelectorAll(".scenario").forEach(b=>b.addEventListener("click",()=>selectScenario(b.dataset.scenario)));
+document.getElementById("runBtn").addEventListener("click",run);document.getElementById("backBtn").addEventListener("click",previousStep);document.getElementById("stepBtn").addEventListener("click",nextStep);document.getElementById("resetBtn").addEventListener("click",reset);
+
+const API='http://127.0.0.1:8088';
+let liveMode=false;
+const liveCheck=document.getElementById('liveCheck');
+const liveLabel=document.getElementById('liveLabel');
+const liveSymbol=document.getElementById('liveSymbol');
+const liveGoBtn=document.getElementById('liveGoBtn');
+
+liveCheck.addEventListener('change',()=>{
+  liveMode=liveCheck.checked;
+  liveLabel.textContent=liveMode?'Live mode':'Demo mode';
+  liveLabel.classList.toggle('on',liveMode);
+  liveSymbol.disabled=!liveMode;
+  liveGoBtn.disabled=!liveMode;
+  document.querySelector('.badge').textContent=liveMode?'Live mode • server at '+API:'Demo mode • no credentials required';
+  if(liveMode){selectScenario('tool-call');toast('Live mode on — enter a symbol and click Fetch Live')}
+});
+
+liveGoBtn.addEventListener('click',()=>runLive());
+liveSymbol.addEventListener('keydown',e=>{if(e.key==='Enter')runLive()});
+
+async function runLive(){
+  const sym=liveSymbol.value.trim();
+  if(!sym){toast('Enter a stock symbol or company name');return}
+  clearLog();currentIndex=-1;currentKey='tool-call';
+  document.querySelectorAll('.scenario').forEach(b=>b.classList.toggle('active',b.dataset.scenario==='tool-call'));
+
+  const liveSteps=[];
+  const addStep=(s)=>{liveSteps.push(s)};
+
+  // Step 1: user request
+  addStep({label:`User asks for ${sym} price`,node:'host',method:'user request',dir:'USER → HOST',
+    msg:{user:`What's the current stock price of ${sym}?`},
+    roles:{host:'receiving',client:'idle',server:'idle',external:'idle'},
+    subs:{host:'Receives user query',client:'',server:'',external:''}});
+
+  // Step 2: tool selection
+  addStep({label:'Model selects get_stock_price',node:'host',method:'tool selection',dir:'HOST INTERNAL',
+    msg:{tool:'get_stock_price',arguments:{symbol:sym}},
+    note:'The model can select a tool; MCP standardizes how the selected capability is invoked.',
+    roles:{host:'sender',client:'idle',server:'idle',external:'idle'},
+    subs:{host:'Picks the right tool',client:'Waiting…',server:'',external:''}});
+
+  // Step 3: client sends tools/call
+  addStep({label:'Client sends tools/call',node:'client',method:'tools/call',dir:'CLIENT → SERVER',
+    msg:{jsonrpc:'2.0',id:42,method:'tools/call',params:{name:'get_stock_price',arguments:{symbol:sym}}},
+    roles:{host:'idle',client:'sender',server:'receiver',external:'idle'},
+    subs:{host:'Done',client:'Sends JSON-RPC request',server:'Receives call',external:''}});
+
+  // Now actually call the API
+  document.getElementById('statusText').textContent='Fetching…';
+  document.getElementById('statusDot').classList.add('running');
+
+  try{
+    // Step 4: resolve symbol
+    const resolveRes=await fetch(`${API}/api/resolve?symbol=${encodeURIComponent(sym)}`);
+    const resolveData=await resolveRes.json();
+
+    if(resolveData.status==='not_found'){
+      addStep({label:`No stock found for "${sym}"`,node:'server',method:'resolution failed',dir:'SERVER → CLIENT',
+        msg:resolveData,
+        roles:{host:'idle',client:'receiver',server:'sender',external:'idle'},
+        subs:{host:'',client:'Receives error',server:'Symbol not found',external:''}});
+      scenarios['tool-call']={title:'Tool Invocation (Live)',steps:liveSteps};
+      currentIndex=-1;autoPlaySteps(liveSteps);return;
+    }
+
+    const resolved=resolveData.status==='resolved'?resolveData.symbol:sym.toUpperCase();
+    const companyName=resolveData.name||resolved;
+
+    addStep({label:`Server resolves ${sym} → ${resolved}`,node:'server',method:'server-side logic',dir:'SERVER INTERNAL',
+      msg:{requested:sym,resolved_symbol:resolved,company:companyName},
+      roles:{host:'idle',client:'idle',server:'sender',external:'idle'},
+      subs:{host:'',client:'Waiting for response…',server:'Looks up ticker symbol',external:''}});
+
+    // Step 5: call external API
+    const callRes=await fetch(`${API}/api/tools/call`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:'get_stock_price',arguments:{symbol:sym}})});
+    const callData=await callRes.json();
+    const quote=callData.result||{};
+
+    addStep({label:'External API returns quote',node:'external',method:'market-data request',dir:'SERVER → EXTERNAL API',
+      msg:{symbol:resolved,current_price:quote.current_price,change:quote.change,change_percent:quote.change_percent,high:quote.high,low:quote.low},
+      roles:{host:'idle',client:'idle',server:'sender',external:'receiver'},
+      subs:{host:'',client:'Waiting…',server:'Calls Finnhub API',external:'Returns market data'}});
+
+    // Step 6: server returns result
+    addStep({label:'Server returns tool result',node:'server',method:'tools/call → result',dir:'SERVER → CLIENT',
+      msg:{jsonrpc:'2.0',id:42,result:quote},
+      roles:{host:'idle',client:'receiver',server:'sender',external:'idle'},
+      subs:{host:'',client:'Receives result',server:'Sends JSON-RPC response',external:'Done'}});
+
+    // Step 7: LLM explains
+    const priceStr=quote.current_price!=null?`$${quote.current_price}`:'N/A';
+    const changeStr=quote.change_percent!=null?`${quote.change_percent>0?'+':''}${quote.change_percent}%`:'';
+    addStep({label:'LLM explains result',node:'host',method:'final response',dir:'HOST → USER',
+      msg:{answer:`${companyName} (${resolved}) is trading at ${priceStr}, ${changeStr} today.`},
+      roles:{host:'sender',client:'idle',server:'idle',external:'idle'},
+      subs:{host:'Formats answer for user',client:'Done',server:'Done',external:''}});
+
+    scenarios['tool-call']={title:'Tool Invocation (Live)',steps:liveSteps};
+    currentIndex=-1;autoPlaySteps(liveSteps);
+
+  }catch(e){
+    toast('API error — is playground_api.py running?');
+    document.getElementById('statusText').textContent='Error';
+    document.getElementById('statusDot').classList.remove('running');
+  }
+}
+
+function autoPlaySteps(steps){
+  clearInterval(timer);
+  let i=-1;
+  timer=setInterval(()=>{
+    if(i<steps.length-1){i++;currentIndex=i;render()}
+    else{clearInterval(timer);document.getElementById('statusText').textContent='Complete';document.getElementById('statusDot').classList.remove('running');toast('Live scenario complete')}
+  },700);
+}
+
+render();
+</script>
+</body>
+</html>

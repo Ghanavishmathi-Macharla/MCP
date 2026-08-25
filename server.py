@@ -124,7 +124,68 @@ def send_email(
             "success": False,
             "error": str(e)
         }
-	  
+
+@mcp.tool()
+def compare_stocks(stock1: str, stock2: str) -> dict:
+    """
+    Compare two stocks using their latest available quotes.
+    """
+
+    try:
+        resolution1 = resolve_stock_symbol(stock1)
+        resolution2 = resolve_stock_symbol(stock2)
+
+        if resolution1["status"] != "resolved":
+            return {
+                "status": "error",
+                "stock": stock1,
+                "resolution": resolution1,
+            }
+
+        if resolution2["status"] != "resolved":
+            return {
+                "status": "error",
+                "stock": stock2,
+                "resolution": resolution2,
+            }
+
+        quote1 = fetch_stock_quote(resolution1["symbol"])
+        quote2 = fetch_stock_quote(resolution2["symbol"])
+
+        performance_difference = (
+            quote1["change_percent"] -
+            quote2["change_percent"]
+        )
+
+        return {
+            "status": "success",
+            "comparison": {
+                "stock_1": {
+                    "requested": stock1,
+                    "company": resolution1["name"],
+                    **quote1,
+                },
+                "stock_2": {
+                    "requested": stock2,
+                    "company": resolution2["name"],
+                    **quote2,
+                },
+                "performance_difference_percent": performance_difference,
+            },
+        }
+
+    except requests.RequestException as e:
+        return {
+            "status": "error",
+            "message": f"Failed to fetch stock data: {str(e)}",
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e),
+        }
+    
 @mcp.resource("watchlist://stocks")
 def get_watchlist() -> str:
    return """

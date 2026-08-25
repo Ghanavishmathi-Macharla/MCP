@@ -60,35 +60,48 @@ def fetch_stock_quote(symbol: str) -> dict:
     }
 
 @mcp.tool()
-def get_stock_price(stock: str) -> dict:
+def get_stock_price(symbol: str) -> dict:
     """
     Get the latest available stock quote.
 
-    The input can be either a stock ticker symbol
-    such as AAPL or NVDA, or a company name such as
-    Apple or NVIDIA.
+    The input can be either:
+    - a ticker symbol, such as AAPL or NVDA
+    - a company name, such as Apple or NVIDIA
+
+    Company names are automatically resolved to ticker symbols.
     """
 
     try:
-        symbol = resolve_stock_symbol(stock)
+        resolution = resolve_stock_symbol(symbol)
 
-        quote = fetch_stock_quote(symbol)
+        if resolution["status"] == "not_found":
+            return resolution
+
+        if resolution["status"] == "ambiguous":
+            return resolution
+
+        resolved_symbol = resolution["symbol"]
+
+        quote = fetch_stock_quote(resolved_symbol)
 
         return {
-            "company_or_symbol_requested": stock,
+            "requested": symbol,
+            "company": resolution["name"],
             **quote
-        }
-
-    except (RuntimeError, ValueError) as e:
-        return {
-            "error": str(e)
         }
 
     except requests.RequestException as e:
         return {
-            "error": f"Failed to fetch stock data: {str(e)}"
+            "status": "error",
+            "message": f"Failed to fetch stock data: {str(e)}"
         }
 
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+    
 @mcp.tool()
 def send_email(
     to: str,

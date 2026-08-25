@@ -1,35 +1,50 @@
 import os
 import requests
 
-
-def resolve_stock_symbol(query: str) -> str:
+def resolve_stock_symbol(query: str) -> dict:
     """
-    Resolve a company name or stock symbol to a stock ticker.
+    Resolve a company name or ticker symbol.
 
-    Examples:
-        NVIDIA -> NVDA
-        Nvidia -> NVDA
-        NVDA   -> NVDA
-        Apple  -> AAPL
-        AAPL   -> AAPL
+    Returns:
+        {
+            "status": "resolved",
+            "symbol": "NVDA",
+            "name": "NVIDIA Corporation"
+        }
+
+    or:
+
+        {
+            "status": "ambiguous",
+            "matches": [...]
+        }
+
+    or:
+
+        {
+            "status": "not_found",
+            "message": "..."
+        }
     """
 
     query = query.strip()
 
     if not query:
-        raise ValueError("Stock name or symbol cannot be empty")
+        return {
+            "status": "not_found",
+            "message": "Stock name or symbol cannot be empty."
+        }
 
     api_key = os.getenv("FINNHUB_API_KEY")
 
     if not api_key:
         raise RuntimeError("FINNHUB_API_KEY is not configured")
 
-    # First try Finnhub's symbol search
     url = "https://finnhub.io/api/v1/search"
 
     params = {
         "q": query,
-        "token": api_key,
+        "token": api_key
     }
 
     response = requests.get(
@@ -44,29 +59,77 @@ def resolve_stock_symbol(query: str) -> str:
 
     results = data.get("result", [])
 
+    # Only keep actual common-stock results.
+    results = [
+        result
+        for result in results
+        if result.get("symbol")
+        and result.get("description")
+    ]
+
     if not results:
-        raise ValueError(
-            f"Could not find a stock for '{query}'"
-        )
+        return {
+            "status": "not_found",
+            "message": f"No stock found for '{query}'."
+        }
 
-    # Look for an exact ticker match first.
     query_upper = query.upper()
-
-    for result in results:
-        symbol = result.get("symbol", "")
-
-        if symbol.upper() == query_upper:
-            return symbol
-
-    # Otherwise look for an exact company-name match.
     query_lower = query.lower()
 
-    for result in results:
-        description = result.get("description", "")
+    # --------------------------------------------------
+    # 1. Exact ticker match
+    # --------------------------------------------------
 
-        if description.lower() == query_lower:
-            return result["symbol"]
+    exact_symbol_matches = [
+        result
+        for result in results
+        if result["symbol"].upper() == query_upper
+    ]
 
-    # Otherwise use the first result.
-    return results[0]["symbol"]
-    
+    if len(exact_symbol_matches) == 1:
+        result = exact_symbol_matches[0]
+
+        return {
+            "status": "resolved",
+            "symbol": result["symbol"],
+            "name": result["description"]
+        }
+
+    # --------------------------------------------------
+    # 2. Exact company-name match
+    # --------------------------------------------------
+
+    exact_name_matches = [
+        result
+        for result in results
+        if result["description"].lower() == query_lower
+    ]
+
+    if len(exact_name_matches) == 1:
+        result = exact_name_matches[0]
+
+        return {
+            "status": "resolved",
+            "symbol": result["symbol"],
+            "name": result["description"]
+        }
+
+    # --------------------------------------------------
+    # 3. Multiple possible matches
+    # --------------------------------------------------
+
+    matches = [
+        {
+            "symbol": result["symbol"],
+            "name": result["description"],
+            "type": result.get("type"),
+            "display_symbol": result.get("displaySymbol")
+        }
+        for result in results[:10]
+    ]
+
+    return {
+        "status": "ambiguous",
+        "message": f"Multiple stocks matched '{query}'.",
+        "matches": matches
+    }
